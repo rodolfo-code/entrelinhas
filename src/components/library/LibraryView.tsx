@@ -1,7 +1,6 @@
 "use client";
 
-import { Plus, Search, BookOpen, Library as LibraryIcon, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Plus, Search, Library as LibraryIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,12 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLibrary } from "@/context/library-context";
-import { CATEGORIES, ReadingStatus, STATUS_LABELS } from "@/types/book";
+import { ReadingStatus } from "@/types/book";
 import { cn } from "@/lib/utils";
 import { BookCard } from "./BookCard";
 import { BookDialogs } from "./BookDialogs";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useLibraryView } from "@/hooks/use-library-view";
 
 const STATUS_FILTERS: Array<{ value: "todos" | ReadingStatus; label: string }> = [
   { value: "todos", label: "Todos" },
@@ -35,41 +34,25 @@ export function LibraryView({
   description?: string;
   fixedStatus?: ReadingStatus;
 }) {
-  const { books, isLoading, openAdd, openDetail } = useLibrary();
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"todos" | ReadingStatus>("todos");
-  const [category, setCategory] = useState<string>("todas");
-  const [subject, setSubject] = useState<string>("todos");
-
-  const categories = useMemo(() => {
-    const set = new Set(books.map((b) => b.category));
-    return Array.from(set).sort();
-  }, [books]);
-
-  const subjects = useMemo(() => {
-    const set = new Set(books.flatMap((b) => b.subjects));
-    return Array.from(set).sort();
-  }, [books]);
-
-  const effectiveStatus = fixedStatus ?? status;
-
-  const filteredBooks = useMemo(() => {
-    return books.filter((b) => {
-      const q = query.trim().toLowerCase();
-      if (
-        q &&
-        !`${b.title} ${b.author} ${b.subjects.join(" ")} ${b.whyRead || ""}`
-          .toLowerCase()
-          .includes(q)
-      ) {
-        return false;
-      }
-      if (effectiveStatus !== "todos" && b.status !== effectiveStatus) return false;
-      if (category !== "todas" && b.category !== category) return false;
-      if (subject !== "todos" && !b.subjects.includes(subject)) return false;
-      return true;
-    });
-  }, [books, query, effectiveStatus, category, subject]);
+  const {
+    books,
+    filteredBooks,
+    isLoading,
+    query,
+    setQuery,
+    status,
+    setStatus,
+    category,
+    setCategory,
+    subject,
+    setSubject,
+    categories,
+    subjects,
+    hasActiveFilters,
+    clearFilters,
+    openAdd,
+    openDetail,
+  } = useLibraryView({ fixedStatus });
 
   return (
     <div className="space-y-8">
@@ -77,7 +60,7 @@ export function LibraryView({
         title={title}
         description={description}
         action={
-          <Button onClick={openAdd} className="rounded-full shadow-sm">
+          <Button onClick={openAdd} className="rounded-full shadow-sm cursor-pointer">
             <Plus className="h-4 w-4 mr-1.5" strokeWidth={2} />
             Adicionar livro
           </Button>
@@ -152,17 +135,12 @@ export function LibraryView({
           </Select>
 
           {/* Reset Filters if modified */}
-          {(query || status !== "todos" || category !== "todas" || subject !== "todos") && (
+          {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setQuery("");
-                setStatus("todos");
-                setCategory("todas");
-                setSubject("todos");
-              }}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={clearFilters}
+              className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
             >
               Limpar filtros
             </Button>
@@ -186,7 +164,7 @@ export function LibraryView({
           <p className="mt-2 text-sm text-muted-foreground max-w-sm">
             Comece cadastrando os primeiros livros que você deseja ler ou já está estudando.
           </p>
-          <Button onClick={openAdd} className="mt-6 rounded-full">
+          <Button onClick={openAdd} className="mt-6 rounded-full cursor-pointer">
             <Plus className="h-4 w-4 mr-1.5" />
             Adicionar primeiro livro
           </Button>

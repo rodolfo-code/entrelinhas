@@ -1,163 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
   Plus,
   Trash2,
   Edit3,
   X,
-  Sparkles,
   BookHeart,
-  ChevronDown,
-  ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { JournalEntry, JournalMood, JOURNAL_MOODS } from "@/types";
+import { JOURNAL_MOODS } from "@/types";
 import { cn } from "@/lib/utils";
-
-const JOURNAL_STORAGE_KEY = "literature_app_journal_v1";
-
-const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [
-  {
-    id: "j_1",
-    date: "2026-08-22",
-    title: "A sensação de dispersão e o resgate do silêncio",
-    content:
-      "Percebi hoje pela manhã uma forte inquietação ao tentar ler as primeiras páginas de Dostoiévski. Minha mente insistia em buscar estímulos rápidos. Decidi fechar as abas e ficar 10 minutos apenas respirando em silêncio. Quando voltei ao texto, as palavras ganharam outra densidade. O silêncio não é ausência de ruído, é o espaço onde a imaginação consegue criar raízes.",
-    mood: "reflexivo",
-    tags: ["conflito", "leitura", "silencio", "atencao"],
-    createdAt: new Date("2026-08-22T09:30:00").toISOString(),
-    updatedAt: new Date("2026-08-22T09:30:00").toISOString(),
-  },
-  {
-    id: "j_2",
-    date: "2026-08-20",
-    title: "Conflito entre ação prática e contemplação teórica",
-    content:
-      "Tive uma longa conversa ontem sobre escolhas profissionais e me peguei pensando: quanto da minha busca por filosofia é um desejo genuíno de sabedoria e quanto é uma fuga da fricção da vida real? Concluí que a reflexão só tem valor se enriquecer a forma como encaro as pessoas e as responsabilidades diárias.",
-    mood: "denso",
-    tags: ["analise", "existencial", "conflito"],
-    createdAt: new Date("2026-08-20T21:15:00").toISOString(),
-    updatedAt: new Date("2026-08-20T21:15:00").toISOString(),
-  },
-  {
-    id: "j_3",
-    date: "2026-08-18",
-    title: "Lampejo sobre a moral de Meursault",
-    content:
-      "Ideia súbita enquanto caminhava: Meursault em O Estrangeiro não é um monstro sem sentimentos, mas alguém que recusa a teatralidade social do luto. A sociedade pune mais a falta de fingimento do que o próprio crime.",
-    mood: "inspirado",
-    tags: ["ideia", "camus", "moral"],
-    createdAt: new Date("2026-08-18T17:40:00").toISOString(),
-    updatedAt: new Date("2026-08-18T17:40:00").toISOString(),
-  },
-];
+import { useJournal } from "@/hooks/use-journal";
 
 export function JournalView() {
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [isWriting, setIsWriting] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  // Form State
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [selectedMood, setSelectedMood] = useState<JournalMood>("reflexivo");
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(JOURNAL_STORAGE_KEY);
-      if (saved) {
-        setEntries(JSON.parse(saved));
-      } else {
-        setEntries(INITIAL_JOURNAL_ENTRIES);
-        localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(INITIAL_JOURNAL_ENTRIES));
-      }
-    } catch (e) {
-      setEntries(INITIAL_JOURNAL_ENTRIES);
-    }
-  }, []);
-
-  const saveToStorage = (updated: JournalEntry[]) => {
-    setEntries(updated);
-    try {
-      localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const addTag = () => {
-    const t = tagInput.trim().replace(/^#/, "");
-    if (t && !tags.includes(t)) {
-      setTags([...tags, t]);
-    }
-    setTagInput("");
-  };
-
-  const handleSave = () => {
-    if (!content.trim()) return;
-
-    const now = new Date();
-    const dateStr = now.toISOString().split("T")[0];
-
-    if (editingId) {
-      const updated = entries.map((item) =>
-        item.id === editingId
-          ? {
-              ...item,
-              title: title.trim() || undefined,
-              content: content.trim(),
-              mood: selectedMood,
-              tags,
-              updatedAt: now.toISOString(),
-            }
-          : item
-      );
-      saveToStorage(updated);
-      setEditingId(null);
-    } else {
-      const newEntry: JournalEntry = {
-        id: `entry_${Date.now()}`,
-        date: dateStr,
-        title: title.trim() || undefined,
-        content: content.trim(),
-        mood: selectedMood,
-        tags,
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-      };
-      saveToStorage([newEntry, ...entries]);
-    }
-
-    // Reset
-    setTitle("");
-    setContent("");
-    setSelectedMood("reflexivo");
-    setTags([]);
-    setTagInput("");
-    setIsWriting(false);
-  };
-
-  const handleEdit = (entry: JournalEntry) => {
-    setEditingId(entry.id);
-    setTitle(entry.title || "");
-    setContent(entry.content);
-    setSelectedMood(entry.mood || "reflexivo");
-    setTags(entry.tags);
-    setIsWriting(true);
-  };
-
-  const handleDelete = (id: string) => {
-    const updated = entries.filter((e) => e.id !== id);
-    saveToStorage(updated);
-  };
+  const {
+    entries,
+    isLoading,
+    isSubmitting,
+    isWriting,
+    editingId,
+    title,
+    setTitle,
+    content,
+    setContent,
+    selectedMood,
+    setSelectedMood,
+    tagInput,
+    setTagInput,
+    tags,
+    openNewEntry,
+    closeForm,
+    handleEdit,
+    addTag,
+    removeTag,
+    handleSave,
+    handleDelete,
+  } = useJournal();
 
   const todayFormatted = new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -174,15 +57,8 @@ export function JournalView() {
         action={
           !isWriting && (
             <Button
-              onClick={() => {
-                setEditingId(null);
-                setTitle("");
-                setContent("");
-                setSelectedMood("reflexivo");
-                setTags([]);
-                setIsWriting(true);
-              }}
-              className="rounded-full shadow-xs"
+              onClick={openNewEntry}
+              className="rounded-full shadow-xs cursor-pointer"
             >
               <Plus className="h-4 w-4 mr-1.5" />
               Escrever entrada
@@ -201,10 +77,7 @@ export function JournalView() {
             </div>
             <button
               type="button"
-              onClick={() => {
-                setIsWriting(false);
-                setEditingId(null);
-              }}
+              onClick={closeForm}
               className="text-muted-foreground hover:text-foreground p-1 cursor-pointer"
             >
               <X className="h-4 w-4" />
@@ -265,7 +138,7 @@ export function JournalView() {
                       addTag();
                     }
                   }}
-                  placeholder="Tags (ex: conflito, ideia, moral) e pressione Enter..."
+                  placeholder="Tags (pressione Enter para adicionar)..."
                   className="text-xs h-9"
                 />
                 <Button
@@ -274,6 +147,7 @@ export function JournalView() {
                   size="sm"
                   onClick={addTag}
                   disabled={!tagInput.trim()}
+                  className="cursor-pointer"
                 >
                   Adicionar
                 </Button>
@@ -289,8 +163,8 @@ export function JournalView() {
                       #{t}
                       <button
                         type="button"
-                        onClick={() => setTags(tags.filter((x) => x !== t))}
-                        className="hover:text-destructive cursor-pointer"
+                        onClick={() => removeTag(t)}
+                        className="hover:text-destructive cursor-pointer ml-0.5"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -305,18 +179,17 @@ export function JournalView() {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => {
-                setIsWriting(false);
-                setEditingId(null);
-              }}
+              onClick={closeForm}
+              className="cursor-pointer"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!content.trim()}
-              className="rounded-full px-6"
+              disabled={!content.trim() || isSubmitting}
+              className="rounded-full px-6 cursor-pointer"
             >
+              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {editingId ? "Salvar alterações" : "Guardar no diário"}
             </Button>
           </div>
@@ -325,7 +198,12 @@ export function JournalView() {
 
       {/* Journal Timeline */}
       <div className="space-y-6">
-        {entries.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span className="text-sm">Carregando seu diário...</span>
+          </div>
+        ) : entries.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/80 p-12 text-center">
             <BookHeart className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-display text-lg font-medium text-foreground">
@@ -346,7 +224,6 @@ export function JournalView() {
                 year: "numeric",
               }
             );
-            const isExpanded = expandedId === entry.id;
 
             return (
               <article

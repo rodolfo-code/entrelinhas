@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import {
   Plus,
   Search,
@@ -10,6 +9,7 @@ import {
   X,
   BookOpen,
   Calendar,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,46 +29,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Note, NoteCategory, NOTE_CATEGORIES } from "@/types";
+import { NoteCategory, NOTE_CATEGORIES } from "@/types";
 import { cn } from "@/lib/utils";
-
-const NOTES_STORAGE_KEY = "literature_app_notes_v1";
-
-const INITIAL_NOTES: Note[] = [
-  {
-    id: "n_1",
-    title: "O conceito de Culpa em Dostoiévski",
-    content:
-      "Em Crime e Castigo, Raskólnikov não sofre pela lei humana ou pelo medo da prisão, mas pela fragmentação interna da sua própria consciência. A punição precede o tribunal e reside no isolamento afetivo que o crime impõe ao indivíduo.",
-    category: "Ensaio",
-    tags: ["dostoievski", "culpa", "moral", "literatura-russa"],
-    linkedBookTitle: "Crime e Castigo",
-    createdAt: new Date("2026-08-15T14:20:00").toISOString(),
-    updatedAt: new Date("2026-08-15T14:20:00").toISOString(),
-  },
-  {
-    id: "n_2",
-    title: "A Alegoria da Caverna e a Educação Humanística",
-    content:
-      "A saída da caverna em Platão não é um acúmulo de fatos, mas uma conversão do olhar (periagoge). O estudante não precisa de 'novos olhos', mas de redirecionar a visão para a luz da verdade.",
-    category: "Estudo",
-    tags: ["platao", "filosofia", "educacao"],
-    linkedBookTitle: "A República",
-    createdAt: new Date("2026-08-17T11:00:00").toISOString(),
-    updatedAt: new Date("2026-08-17T11:00:00").toISOString(),
-  },
-  {
-    id: "n_3",
-    title: "O Absurdo e a Revolta em Camus",
-    content:
-      "Constatação: para Camus, o absurdo nasce do confronto entre o desejo humano de sentido e o silêncio irracional do mundo. A resposta digna não é o suicídio, mas a revolta lúcida e a paixão pelo presente.",
-    category: "Reflexão",
-    tags: ["camus", "existencialismo", "absurdo"],
-    linkedBookTitle: "O Estrangeiro",
-    createdAt: new Date("2026-08-19T18:45:00").toISOString(),
-    updatedAt: new Date("2026-08-19T18:45:00").toISOString(),
-  },
-];
+import { useNotes } from "@/hooks/use-notes";
 
 const CATEGORY_STYLES: Record<NoteCategory, string> = {
   Ensaio: "border-primary/40 bg-primary/10 text-primary",
@@ -79,132 +42,37 @@ const CATEGORY_STYLES: Record<NoteCategory, string> = {
 };
 
 export function NotesView() {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [query, setQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("todas");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
-
-  // Form State
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [category, setCategory] = useState<NoteCategory>("Reflexão");
-  const [linkedBookTitle, setLinkedBookTitle] = useState("");
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(NOTES_STORAGE_KEY);
-      if (saved) {
-        setNotes(JSON.parse(saved));
-      } else {
-        setNotes(INITIAL_NOTES);
-        localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(INITIAL_NOTES));
-      }
-    } catch (e) {
-      setNotes(INITIAL_NOTES);
-    }
-  }, []);
-
-  const saveToStorage = (updated: Note[]) => {
-    setNotes(updated);
-    try {
-      localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const openNewNote = () => {
-    setEditingNote(null);
-    setTitle("");
-    setContent("");
-    setCategory("Reflexão");
-    setLinkedBookTitle("");
-    setTags([]);
-    setTagInput("");
-    setIsModalOpen(true);
-  };
-
-  const openEditNote = (n: Note) => {
-    setEditingNote(n);
-    setTitle(n.title);
-    setContent(n.content);
-    setCategory(n.category);
-    setLinkedBookTitle(n.linkedBookTitle || "");
-    setTags(n.tags);
-    setTagInput("");
-    setIsModalOpen(true);
-  };
-
-  const addTag = () => {
-    const t = tagInput.trim().replace(/^#/, "");
-    if (t && !tags.includes(t)) {
-      setTags([...tags, t]);
-    }
-    setTagInput("");
-  };
-
-  const handleSave = () => {
-    if (!title.trim() || !content.trim()) return;
-
-    const now = new Date().toISOString();
-
-    if (editingNote) {
-      const updated = notes.map((item) =>
-        item.id === editingNote.id
-          ? {
-              ...item,
-              title: title.trim(),
-              content: content.trim(),
-              category,
-              linkedBookTitle: linkedBookTitle.trim() || undefined,
-              tags,
-              updatedAt: now,
-            }
-          : item
-      );
-      saveToStorage(updated);
-    } else {
-      const newNote: Note = {
-        id: `note_${Date.now()}`,
-        title: title.trim(),
-        content: content.trim(),
-        category,
-        linkedBookTitle: linkedBookTitle.trim() || undefined,
-        tags,
-        createdAt: now,
-        updatedAt: now,
-      };
-      saveToStorage([newNote, ...notes]);
-    }
-
-    setIsModalOpen(false);
-  };
-
-  const handleDelete = (id: string) => {
-    const updated = notes.filter((n) => n.id !== id);
-    saveToStorage(updated);
-  };
-
-  const filteredNotes = useMemo(() => {
-    return notes.filter((n) => {
-      const q = query.trim().toLowerCase();
-      if (
-        q &&
-        !`${n.title} ${n.content} ${n.tags.join(" ")} ${n.linkedBookTitle || ""}`
-          .toLowerCase()
-          .includes(q)
-      ) {
-        return false;
-      }
-      if (categoryFilter !== "todas" && n.category !== categoryFilter) {
-        return false;
-      }
-      return true;
-    });
-  }, [notes, query, categoryFilter]);
+  const {
+    notes,
+    filteredNotes,
+    isLoading,
+    isSubmitting,
+    query,
+    setQuery,
+    categoryFilter,
+    setCategoryFilter,
+    isModalOpen,
+    setIsModalOpen,
+    editingNote,
+    title,
+    setTitle,
+    content,
+    setContent,
+    category,
+    setCategory,
+    linkedBookTitle,
+    setLinkedBookTitle,
+    tagInput,
+    setTagInput,
+    tags,
+    openNewNote,
+    openEditNote,
+    closeModal,
+    addTag,
+    removeTag,
+    handleSave,
+    handleDelete,
+  } = useNotes();
 
   return (
     <div className="space-y-8">
@@ -212,7 +80,7 @@ export function NotesView() {
         title="Caderno de Notas & Escritos"
         description="Seus ensaios, sínteses conceituais, anotações de estudo e reflexões aprofundadas."
         action={
-          <Button onClick={openNewNote} className="rounded-full shadow-xs">
+          <Button onClick={openNewNote} className="rounded-full shadow-xs cursor-pointer">
             <Plus className="h-4 w-4 mr-1.5" />
             Nova Nota
           </Button>
@@ -267,16 +135,21 @@ export function NotesView() {
       </div>
 
       {/* Notes Grid */}
-      {filteredNotes.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span className="text-sm">Carregando notas...</span>
+        </div>
+      ) : filteredNotes.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/80 p-12 text-center">
           <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
           <h3 className="font-display text-lg font-medium text-foreground">
             Nenhuma nota encontrada
           </h3>
           <p className="mt-1 text-sm text-muted-foreground max-w-sm mx-auto">
-            Crie sua primeira reflexão ou ensaio conectado aos seus livros.
+            Crie sua primeira reflexão ou ensaio conectado aos seus livros e estudos.
           </p>
-          <Button onClick={openNewNote} className="mt-5 rounded-full">
+          <Button onClick={openNewNote} className="mt-5 rounded-full cursor-pointer">
             <Plus className="h-4 w-4 mr-1.5" />
             Escrever nova nota
           </Button>
@@ -367,7 +240,7 @@ export function NotesView() {
       )}
 
       {/* Dialog: Create / Edit Note */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isModalOpen} onOpenChange={(open) => !open && closeModal()}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl font-medium">
@@ -393,7 +266,7 @@ export function NotesView() {
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex: O conceito de culpa em Dostoiévski"
+                  placeholder="Título da sua nota..."
                   required
                   autoFocus
                 />
@@ -427,7 +300,7 @@ export function NotesView() {
                 <Input
                   value={linkedBookTitle}
                   onChange={(e) => setLinkedBookTitle(e.target.value)}
-                  placeholder="Ex: Crime e Castigo"
+                  placeholder="Título do livro relacionado..."
                 />
               </div>
             </div>
@@ -469,6 +342,7 @@ export function NotesView() {
                   size="sm"
                   onClick={addTag}
                   disabled={!tagInput.trim()}
+                  className="cursor-pointer"
                 >
                   Adicionar
                 </Button>
@@ -483,8 +357,8 @@ export function NotesView() {
                       #{t}
                       <button
                         type="button"
-                        onClick={() => setTags(tags.filter((x) => x !== t))}
-                        className="hover:text-destructive cursor-pointer"
+                        onClick={() => removeTag(t)}
+                        className="hover:text-destructive cursor-pointer ml-0.5"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -498,11 +372,13 @@ export function NotesView() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
+                className="cursor-pointer"
               >
                 Cancelar
               </Button>
-              <Button type="submit" className="rounded-full">
+              <Button type="submit" disabled={isSubmitting} className="rounded-full cursor-pointer">
+                {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {editingNote ? "Salvar alterações" : "Criar nota"}
               </Button>
             </div>
