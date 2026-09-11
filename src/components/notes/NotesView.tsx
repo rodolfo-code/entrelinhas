@@ -32,6 +32,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { NoteCategory, NOTE_CATEGORIES } from "@/types";
 import { cn } from "@/lib/utils";
 import { useNotes } from "@/hooks/use-notes";
+import { useLibrary } from "@/context/library-context";
 
 const CATEGORY_STYLES: Record<NoteCategory, string> = {
   Ensaio: "border-primary/40 bg-primary/10 text-primary",
@@ -62,6 +63,8 @@ export function NotesView() {
     setCategory,
     linkedBookTitle,
     setLinkedBookTitle,
+    bookId,
+    setBookId,
     tagInput,
     setTagInput,
     tags,
@@ -73,6 +76,8 @@ export function NotesView() {
     handleSave,
     handleDelete,
   } = useNotes();
+
+  const { books } = useLibrary();
 
   return (
     <div className="space-y-8">
@@ -297,11 +302,31 @@ export function NotesView() {
                 <label className="text-sm font-medium text-foreground">
                   Livro vinculado <span className="text-xs text-muted-foreground font-normal">(Opcional)</span>
                 </label>
-                <Input
-                  value={linkedBookTitle}
-                  onChange={(e) => setLinkedBookTitle(e.target.value)}
-                  placeholder="Título do livro relacionado..."
-                />
+                <Select
+                  value={bookId ?? "_none"}
+                  onValueChange={(v) => {
+                    if (v === "_none") {
+                      setBookId(undefined);
+                      setLinkedBookTitle("");
+                    } else {
+                      const found = books.find((b) => b.id === v);
+                      setBookId(v);
+                      setLinkedBookTitle(found?.title ?? "");
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um livro..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Nenhum</SelectItem>
+                    {books.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

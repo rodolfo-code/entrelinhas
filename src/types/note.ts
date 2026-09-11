@@ -31,7 +31,8 @@ export interface Note {
   content: string;
   category: NoteCategory;
   tags: string[];
-  linkedBookTitle?: string;
+  bookId?: string;          // FK para books.id
+  linkedBookTitle?: string; // título em cache para exibição
   createdAt: string;
   updatedAt: string;
 }

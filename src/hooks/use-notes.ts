@@ -15,6 +15,7 @@ export function useNotes() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState<NoteCategory>("Reflexão");
+  const [bookId, setBookId] = useState<string | undefined>(undefined);
   const [linkedBookTitle, setLinkedBookTitle] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -40,6 +41,7 @@ export function useNotes() {
     setTitle("");
     setContent("");
     setCategory("Reflexão");
+    setBookId(undefined);
     setLinkedBookTitle("");
     setTags([]);
     setTagInput("");
@@ -51,6 +53,7 @@ export function useNotes() {
     setTitle(n.title);
     setContent(n.content);
     setCategory(n.category);
+    setBookId(n.bookId);
     setLinkedBookTitle(n.linkedBookTitle || "");
     setTags(n.tags);
     setTagInput("");
@@ -63,6 +66,7 @@ export function useNotes() {
     setTitle("");
     setContent("");
     setCategory("Reflexão");
+    setBookId(undefined);
     setLinkedBookTitle("");
     setTags([]);
     setTagInput("");
@@ -90,6 +94,7 @@ export function useNotes() {
           title: title.trim(),
           content: content.trim(),
           category,
+          bookId: bookId || undefined,
           linkedBookTitle: linkedBookTitle.trim() || undefined,
           tags,
         });
@@ -98,6 +103,7 @@ export function useNotes() {
           title: title.trim(),
           content: content.trim(),
           category,
+          bookId: bookId || undefined,
           linkedBookTitle: linkedBookTitle.trim() || undefined,
           tags,
         });
@@ -158,6 +164,8 @@ export function useNotes() {
     setContent,
     category,
     setCategory,
+    bookId,
+    setBookId,
     linkedBookTitle,
     setLinkedBookTitle,
     tagInput,

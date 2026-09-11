@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS public.notes (
     content TEXT NOT NULL,
     category TEXT NOT NULL DEFAULT 'Reflexão',
     tags TEXT[] DEFAULT '{}',
+    book_id UUID REFERENCES public.books(id) ON DELETE SET NULL,
     linked_book_title TEXT,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL

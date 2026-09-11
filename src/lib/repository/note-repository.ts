@@ -7,6 +7,7 @@ interface DbNoteRow {
   content: string;
   category: string;
   tags: string[] | null;
+  book_id: string | null;
   linked_book_title: string | null;
   created_at: string;
   updated_at: string;
@@ -23,6 +24,7 @@ function mapDbRowToNote(row: DbNoteRow): Note {
     content: row.content,
     category: (row.category as NoteCategory) || "Reflexão",
     tags: Array.isArray(row.tags) ? row.tags : [],
+    bookId: row.book_id || undefined,
     linkedBookTitle: row.linked_book_title || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -84,6 +86,7 @@ export class NoteRepository {
             content: data.content,
             category: data.category,
             tags: data.tags || [],
+            book_id: data.bookId || null,
             linked_book_title: data.linkedBookTitle || null,
           })
           .select()
@@ -120,6 +123,7 @@ export class NoteRepository {
         if (data.content !== undefined) payload.content = data.content;
         if (data.category !== undefined) payload.category = data.category;
         if (data.tags !== undefined) payload.tags = data.tags;
+        if ("bookId" in data) payload.book_id = data.bookId || null;
         if (data.linkedBookTitle !== undefined)
           payload.linked_book_title = data.linkedBookTitle || null;
 
