@@ -41,6 +41,7 @@ const EMPTY_FORM: BookFormData = {
   category: "Literatura",
   subjects: [],
   status: "to_read",
+  coverUrl: "",
   whyRead: "",
   notes: "",
 };
@@ -148,6 +149,22 @@ function BookForm({
           selectedSubjects={form.subjects}
           onChange={(subjects) => setForm({ ...form, subjects })}
           allBooks={books}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="coverUrl" className="text-foreground">
+          URL da capa{" "}
+          <span className="text-xs font-normal text-muted-foreground">
+            (Cole o link da imagem do Goodreads ou outra fonte)
+          </span>
+        </Label>
+        <Input
+          id="coverUrl"
+          type="url"
+          value={form.coverUrl || ""}
+          onChange={(e) => setForm({ ...form, coverUrl: e.target.value })}
+          placeholder="https://images-na.ssl-images-amazon.com/..."
         />
       </div>
 

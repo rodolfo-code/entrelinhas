@@ -1,16 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { Book, STATUS_LABELS, STATUS_STYLES } from "@/types/book";
 import { cn } from "@/lib/utils";
 
 export function BookCard({ book, onOpen }: { book: Book; onOpen: () => void }) {
-  const initials = book.title
-    .split(" ")
-    .filter((w) => w.length > 2)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase() || book.title.slice(0, 2).toUpperCase();
+  const [imgError, setImgError] = useState(false);
+
+  const initials =
+    book.title
+      .split(" ")
+      .filter((w) => w.length > 2)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || book.title.slice(0, 2).toUpperCase();
+
+  const showCover = !!book.coverUrl && !imgError;
 
   return (
     <button
@@ -18,9 +24,20 @@ export function BookCard({ book, onOpen }: { book: Book; onOpen: () => void }) {
       onClick={onOpen}
       className="group flex gap-4 rounded-xl border border-border/70 bg-card p-5 text-left transition-all duration-200 hover:border-border hover:bg-secondary/40 hover:shadow-xs cursor-pointer w-full"
     >
-      {/* Book Spine / Cover Monogram */}
-      <div className="flex h-24 w-16 shrink-0 items-center justify-center rounded-sm border border-border/70 bg-secondary font-display text-base font-medium text-muted-foreground transition-colors group-hover:bg-accent group-hover:text-foreground">
-        {initials}
+      {/* Book Cover or Monogram Fallback */}
+      <div className="flex h-24 w-16 shrink-0 items-center justify-center rounded-sm border border-border/70 overflow-hidden bg-secondary transition-colors group-hover:bg-accent">
+        {showCover ? (
+          <img
+            src={book.coverUrl}
+            alt={`Capa de ${book.title}`}
+            className="h-full w-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span className="font-display text-base font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+            {initials}
+          </span>
+        )}
       </div>
 
       <div className="min-w-0 flex-1 flex flex-col justify-between">

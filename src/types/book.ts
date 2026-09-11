@@ -17,6 +17,7 @@ export interface Book {
   category: Category;
   subjects: string[];
   status: ReadingStatus;
+  coverUrl?: string;
   whyRead?: string;
   notes?: string;
   createdAt: string; // ISO date string for easy serialization

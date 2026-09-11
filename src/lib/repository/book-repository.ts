@@ -8,6 +8,7 @@ interface DbBookRow {
   category: string;
   subjects: string[] | null;
   status: string;
+  cover_url: string | null;
   why_read: string | null;
   notes: string | null;
   started_at: string | null;
@@ -26,6 +27,7 @@ function mapDbRowToBook(row: DbBookRow): Book {
     category: row.category as Category,
     subjects: Array.isArray(row.subjects) ? row.subjects : [],
     status: row.status as ReadingStatus,
+    coverUrl: row.cover_url || undefined,
     whyRead: row.why_read || undefined,
     notes: row.notes || undefined,
     startedAt: row.started_at || undefined,
@@ -127,6 +129,7 @@ export class BookRepository {
             category: data.category,
             subjects: data.subjects || [],
             status: data.status,
+            cover_url: data.coverUrl || null,
             why_read: data.whyRead || null,
             notes: data.notes || null,
             started_at: startedAt,
@@ -185,6 +188,7 @@ export class BookRepository {
             updatePayload.finished_at = now;
           }
         }
+        if ("coverUrl" in data) updatePayload.cover_url = data.coverUrl || null;
         if ("whyRead" in data) updatePayload.why_read = data.whyRead || null;
         if ("notes" in data) updatePayload.notes = data.notes || null;
 

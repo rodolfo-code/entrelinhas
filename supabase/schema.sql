@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS public.books (
     category TEXT NOT NULL,
     subjects TEXT[] DEFAULT '{}',
     status TEXT NOT NULL DEFAULT 'to_read',
+    cover_url TEXT,
     why_read TEXT,
     notes TEXT,
     started_at TIMESTAMPTZ,
