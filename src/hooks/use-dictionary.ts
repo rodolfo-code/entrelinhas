@@ -154,9 +154,15 @@ export function useDictionary() {
       .sort((a, b) => a.word.localeCompare(b.word, "pt-BR"));
   }, [entries, query, selectedLetter]);
 
+  const removerAcentos = (texto: string) => {
+    return texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
   const availableLetters = useMemo(() => {
     const set = new Set(
-      entries.map((e) => e.word[0]?.toUpperCase()).filter(Boolean)
+      entries.map((e) => removerAcentos(e.word[0])?.toUpperCase()).filter(Boolean)
     );
     return set;
   }, [entries]);

@@ -34,6 +34,31 @@ export function DictionaryView() {
     ...dictionaryDialogProps
   } = useDictionary();
 
+  const AlphabetComponent = () => {
+    return ALPHABET.map((letter) => {
+    const hasWords = availableLetters.has(letter);
+    const isSelected = selectedLetter === letter;
+    return (
+      <button
+        key={letter}
+        type="button"
+        disabled={!hasWords}
+        onClick={() => setSelectedLetter(isSelected ? null : letter)}
+        className={cn(
+          "h-7 w-7 rounded-md text-xs font-medium transition-colors flex items-center justify-center cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed",
+          isSelected
+            ? "bg-primary text-primary-foreground font-semibold"
+            : hasWords
+              ? "text-foreground hover:bg-secondary font-semibold"
+              : "text-muted-foreground/40"
+        )}
+      >
+        {letter}
+      </button>
+    )
+    })
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -76,29 +101,9 @@ export function DictionaryView() {
           >
             Todas ({entries.length})
           </button>
-
-          {ALPHABET.map((letter) => {
-            const hasWords = availableLetters.has(letter);
-            const isSelected = selectedLetter === letter;
-            return (
-              <button
-                key={letter}
-                type="button"
-                disabled={!hasWords}
-                onClick={() => setSelectedLetter(isSelected ? null : letter)}
-                className={cn(
-                  "h-7 w-7 rounded-md text-xs font-medium transition-colors flex items-center justify-center cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed",
-                  isSelected
-                    ? "bg-primary text-primary-foreground font-semibold"
-                    : hasWords
-                      ? "text-foreground hover:bg-secondary font-semibold"
-                      : "text-muted-foreground/40"
-                )}
-              >
-                {letter}
-              </button>
-            );
-          })}
+          
+          <AlphabetComponent />
+          
         </div>
       </div>
 
