@@ -8,6 +8,7 @@ export type Category =
   | "Sociologia"
   | "Teologia"
   | "Ciência"
+  | "Cartas"
   | "Outro";
 
 export interface Book {
@@ -36,6 +37,7 @@ export const CATEGORIES: Category[] = [
   "Sociologia",
   "Teologia",
   "Ciência",
+  "Cartas",
   "Outro",
 ];
 

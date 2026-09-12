@@ -130,7 +130,6 @@ export function useDictionary() {
     setTags(tags.filter((t) => t !== tagToRemove));
   };
 
-
   const filteredEntries = useMemo(() => {
     return entries
       .filter((e) => {
@@ -145,7 +144,7 @@ export function useDictionary() {
         }
         if (
           selectedLetter &&
-          e.word[0]?.toUpperCase() !== selectedLetter.toUpperCase()
+          removerAcentos(e.word[0])?.toUpperCase() !== selectedLetter.toUpperCase()
         ) {
           return false;
         }
@@ -154,11 +153,11 @@ export function useDictionary() {
       .sort((a, b) => a.word.localeCompare(b.word, "pt-BR"));
   }, [entries, query, selectedLetter]);
 
-  const removerAcentos = (texto: string) => {
+  function removerAcentos(texto: string) {
     return texto
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
-  };
+  }
 
   const availableLetters = useMemo(() => {
     const set = new Set(
